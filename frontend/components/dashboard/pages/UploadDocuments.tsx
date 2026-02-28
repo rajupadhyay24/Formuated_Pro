@@ -21,13 +21,14 @@ export const UploadDocuments: React.FC = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { user } = useAuth();
 
- 
   useEffect(() => {
     const fetchUserFiles = async () => {
       if (!user?.id) return;
-     console.log(user?.id)
+      console.log(user?.id);
       try {
-        const res = await fetch(`http://localhost:5000/api/user/${user?.id}`);
+        const res = await fetch(
+          `process.env.NEXT_PUBLIC_API_URL/api/user/${user?.id}`,
+        );
         const data = await res.json();
 
         if (Array.isArray(data)) {
@@ -37,7 +38,7 @@ export const UploadDocuments: React.FC = () => {
             name: f.filename || f.title || "Unnamed file",
             status: "done" as const,
             response: f.importantData, // fix mapping
-            imageUrl: `http://localhost:5000/api/marksheets/${f._id}/image`,
+            imageUrl: `process.env.NEXT_PUBLIC_API_URL/api/marksheets/${f._id}/image`,
           }));
 
           setFiles((prev) => {
@@ -77,16 +78,18 @@ export const UploadDocuments: React.FC = () => {
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => e.preventDefault();
 
-
   const removeFile = async (id: string) => {
     const file = files.find((f) => f.id === id || f._id === id);
     if (!file) return;
 
     if (file._id) {
       try {
-        const res = await fetch(`http://localhost:5000/api/marksheets/${file._id}`, {
-          method: "DELETE",
-        });
+        const res = await fetch(
+          `process.env.NEXT_PUBLIC_API_URL/api/marksheets/${file._id}`,
+          {
+            method: "DELETE",
+          },
+        );
         if (!res.ok) {
           console.error("Failed to delete:", await res.text());
           return;
@@ -105,7 +108,7 @@ export const UploadDocuments: React.FC = () => {
       if (!f.file) continue;
 
       setFiles((prev) =>
-        prev.map((p) => (p.id === f.id ? { ...p, status: "uploading" } : p))
+        prev.map((p) => (p.id === f.id ? { ...p, status: "uploading" } : p)),
       );
 
       const fd = new FormData();
@@ -113,7 +116,7 @@ export const UploadDocuments: React.FC = () => {
       fd.append("userId", user?.id || "");
 
       try {
-        const res = await fetch("http://localhost:5000/api/upload", {
+        const res = await fetch("process.env.NEXT_PUBLIC_API_URL/api/upload", {
           method: "POST",
           body: fd,
         });
@@ -123,18 +126,23 @@ export const UploadDocuments: React.FC = () => {
           setFiles((prev) =>
             prev.map((p) =>
               p.id === f.id
-                ? { ...p, status: "done", response: data.data.response, _id: data.data._id }
-                : p
-            )
+                ? {
+                    ...p,
+                    status: "done",
+                    response: data.data.response,
+                    _id: data.data._id,
+                  }
+                : p,
+            ),
           );
         } else {
           setFiles((prev) =>
-            prev.map((p) => (p.id === f.id ? { ...p, status: "error" } : p))
+            prev.map((p) => (p.id === f.id ? { ...p, status: "error" } : p)),
           );
         }
       } catch {
         setFiles((prev) =>
-          prev.map((p) => (p.id === f.id ? { ...p, status: "error" } : p))
+          prev.map((p) => (p.id === f.id ? { ...p, status: "error" } : p)),
         );
       }
     }
@@ -148,7 +156,9 @@ export const UploadDocuments: React.FC = () => {
             {value.map((row: any, i: number) => (
               <tr key={i}>
                 {Object.values(row).map((val, j) => (
-                  <td key={j} className="border p-1">{renderValue(val)}</td>
+                  <td key={j} className="border p-1">
+                    {renderValue(val)}
+                  </td>
                 ))}
               </tr>
             ))}
@@ -163,7 +173,7 @@ export const UploadDocuments: React.FC = () => {
               <p key={i}>
                 <strong>{k}:</strong> {renderValue(v)}
               </p>
-            ) : null
+            ) : null,
           )}
         </div>
       );
@@ -202,30 +212,40 @@ export const UploadDocuments: React.FC = () => {
         </Button>
       )}
 
-      
       <Card>
         <CardHeader>
           <CardTitle>Your Files</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {files.map((f) => (
-            <div key={f.id || f._id} className="flex justify-between p-2 border-b items-center">
+            <div
+              key={f.id || f._id}
+              className="flex justify-between p-2 border-b items-center"
+            >
               <div className="flex items-center space-x-2">
                 <FileText className="h-5 w-5" />
                 <span>{f.name}</span>
               </div>
               <div className="flex items-center space-x-2">
-                {f.status === "done" && <CheckCircle className="text-green-500 h-5 w-5" />}
-                {f.status === "uploading" && <span className="text-yellow-500">Uploading...</span>}
-                {f.status === "error" && <AlertCircle className="text-red-500 h-5 w-5" />}
-                <X className="h-5 w-5 cursor-pointer" onClick={() => removeFile(f.id || f._id!)} />
+                {f.status === "done" && (
+                  <CheckCircle className="text-green-500 h-5 w-5" />
+                )}
+                {f.status === "uploading" && (
+                  <span className="text-yellow-500">Uploading...</span>
+                )}
+                {f.status === "error" && (
+                  <AlertCircle className="text-red-500 h-5 w-5" />
+                )}
+                <X
+                  className="h-5 w-5 cursor-pointer"
+                  onClick={() => removeFile(f.id || f._id!)}
+                />
               </div>
             </div>
           ))}
         </CardContent>
       </Card>
 
-    
       {files.map(
         (f) =>
           f.response && (
@@ -239,11 +259,11 @@ export const UploadDocuments: React.FC = () => {
                     <div key={i} className="mb-1">
                       <strong>{key}:</strong> {renderValue(val)}
                     </div>
-                  ) : null
+                  ) : null,
                 )}
               </CardContent>
             </Card>
-          )
+          ),
       )}
     </div>
   );

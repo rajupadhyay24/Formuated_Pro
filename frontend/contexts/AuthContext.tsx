@@ -26,7 +26,9 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,20 +38,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedUser = localStorage.getItem("user");
 
     if (storedToken && storedUser) {
-         const parsedUser = JSON.parse(storedUser);
-         parsedUser.isPremium = parsedUser.isPremium === true || parsedUser.isPremium === "true";
-         setUser(parsedUser);
-         setToken(storedToken);
+      const parsedUser = JSON.parse(storedUser);
+      parsedUser.isPremium =
+        parsedUser.isPremium === true || parsedUser.isPremium === "true";
+      setUser(parsedUser);
+      setToken(storedToken);
     }
     setIsLoading(false);
   }, []);
 
   const login = async (emailId: string, password: string) => {
-    const response = await fetch("http://localhost:5000/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ emailId, password }),
-    });
+    const response = await fetch(
+      "process.env.NEXT_PUBLIC_API_URL/api/auth/login",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailId, password }),
+      },
+    );
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Login failed");
@@ -58,16 +64,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(data.user);
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
-    localStorage.setItem('isPremium', data.isPremium);
-    
+    localStorage.setItem("isPremium", data.isPremium);
   };
 
   const register = async (formData: any) => {
-    const response = await fetch("http://localhost:5000/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    const response = await fetch(
+      "process.env.NEXT_PUBLIC_API_URL/api/auth/register",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      },
+    );
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Registration failed");
@@ -86,7 +94,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, token, login, register, logout, isLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );

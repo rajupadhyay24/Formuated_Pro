@@ -14,7 +14,6 @@ export const BrowseForms: React.FC = () => {
   const [feedback, setFeedback] = useState("");
   const { user } = useAuth();
 
-  
   const forms = [
     {
       id: 1,
@@ -86,16 +85,17 @@ export const BrowseForms: React.FC = () => {
   const filteredForms = forms.filter(
     (form) =>
       form.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      form.category.toLowerCase().includes(searchTerm.toLowerCase())
+      form.category.toLowerCase().includes(searchTerm.toLowerCase()),
   );
-
 
   const handleAutomationClick = async (route: string, formId: number) => {
     try {
       setLoadingForm(formId);
-      setFeedback("Starting automation... A new browser window should open shortly.");
+      setFeedback(
+        "Starting automation... A new browser window should open shortly.",
+      );
 
-      const response = await fetch(`http://localhost:5000${route}`, {
+      const response = await fetch(`process.env.NEXT_PUBLIC_API_URL${route}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,13 +113,12 @@ export const BrowseForms: React.FC = () => {
       setFeedback(
         `❌ Error: ${
           err.message || "Failed to run automation. Please check backend logs."
-        }`
+        }`,
       );
     } finally {
       setLoadingForm(null);
     }
   };
-
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -134,10 +133,8 @@ export const BrowseForms: React.FC = () => {
     }
   };
 
-
   return (
     <div className="p-6 space-y-6 animate-fade-in-up">
-     
       <div>
         <h1 className="text-3xl font-bold text-foreground">Browse Forms</h1>
         <p className="text-muted-foreground">
@@ -145,7 +142,6 @@ export const BrowseForms: React.FC = () => {
         </p>
       </div>
 
-     
       {feedback && (
         <div
           className={`p-4 rounded-md text-sm ${
@@ -158,7 +154,6 @@ export const BrowseForms: React.FC = () => {
         </div>
       )}
 
-     
       <div className="relative">
         <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input
@@ -169,7 +164,6 @@ export const BrowseForms: React.FC = () => {
         />
       </div>
 
-    
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredForms.map((form) => (
           <Card
