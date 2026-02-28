@@ -88,11 +88,11 @@ const PricingCard: React.FC<PricingCardProps> = ({
   </div>
 );
 
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
+// declare global {
+//   interface Window {
+//     Razorpay: any;
+//   }
+// }
 
 export default function PremiumFeatures() {
   const [loading, setLoading] = useState<boolean>(false);
@@ -162,8 +162,9 @@ export default function PremiumFeatures() {
         );
       }
 
-     
-      const orderResponse = await fetch( `${process.env.NEXT_PUBLIC_API_URL}/create-order`, {
+     const API_URL = process.env.NEXT_PUBLIC_API_URL || ""; 
+
+      const orderResponse = await fetch( `${API_URL}/create-order`,{
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount, currency: "INR" }),
@@ -187,7 +188,7 @@ export default function PremiumFeatures() {
         order_id: order.id,
         handler: async (response: any) => {
           try {
-            const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/verify-payment`, {
+            const verifyRes = await fetch(`${API_URL}/verify-payment`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
