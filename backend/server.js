@@ -25,7 +25,15 @@ dotenv.config();
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
-app.use(cors());
+const cors = require("cors");
+
+app.use(
+  cors({
+    origin: "https://formulatedpro.vercel.app/",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 
