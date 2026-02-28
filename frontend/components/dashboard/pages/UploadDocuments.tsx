@@ -26,9 +26,7 @@ export const UploadDocuments: React.FC = () => {
       if (!user?.id) return;
       console.log(user?.id);
       try {
-        const res = await fetch(
-          `process.env.NEXT_PUBLIC_API_URL/api/user/${user?.id}`,
-        );
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/${user?.id}`);
         const data = await res.json();
 
         if (Array.isArray(data)) {
@@ -38,7 +36,7 @@ export const UploadDocuments: React.FC = () => {
             name: f.filename || f.title || "Unnamed file",
             status: "done" as const,
             response: f.importantData, // fix mapping
-            imageUrl: `process.env.NEXT_PUBLIC_API_URL/api/marksheets/${f._id}/image`,
+            imageUrl: `${process.env.NEXT_PUBLIC_API_URL}/api/marksheets/${f._id}/image`,
           }));
 
           setFiles((prev) => {
@@ -84,12 +82,9 @@ export const UploadDocuments: React.FC = () => {
 
     if (file._id) {
       try {
-        const res = await fetch(
-          `process.env.NEXT_PUBLIC_API_URL/api/marksheets/${file._id}`,
-          {
-            method: "DELETE",
-          },
-        );
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/marksheets/${file._id}`, {
+          method: "DELETE",
+        });
         if (!res.ok) {
           console.error("Failed to delete:", await res.text());
           return;
@@ -116,7 +111,7 @@ export const UploadDocuments: React.FC = () => {
       fd.append("userId", user?.id || "");
 
       try {
-        const res = await fetch("process.env.NEXT_PUBLIC_API_URL/api/upload", {
+        const res = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/upload", {
           method: "POST",
           body: fd,
         });

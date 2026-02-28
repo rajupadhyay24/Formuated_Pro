@@ -21,9 +21,7 @@ export const Profile = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(
-          `process.env.NEXT_PUBLIC_API_URL/api/users/${userId}`,
-        );
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`);
         const data = await res.json();
         setFormData(data);
         setOriginalData(data);
@@ -38,14 +36,11 @@ export const Profile = () => {
   // ✅ Save updated data
   const handleSave = async () => {
     try {
-      const res = await fetch(
-        `process.env.NEXT_PUBLIC_API_URL/api/users/${userId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        },
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
       const updated = await res.json();
       setFormData(updated);
       setOriginalData(updated);

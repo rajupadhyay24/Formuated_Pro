@@ -95,7 +95,7 @@ export const BrowseForms: React.FC = () => {
         "Starting automation... A new browser window should open shortly.",
       );
 
-      const response = await fetch(`process.env.NEXT_PUBLIC_API_URL${route}`, {
+      const response = await fetch(`${route}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -23,9 +23,7 @@ const MyApplications: React.FC = () => {
   const fetchApplications = async () => {
     if (!user?.id) return;
     try {
-      const res = await fetch(
-        `process.env.NEXT_PUBLIC_API_URL/api/application/user/${user.id}`,
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/application/user/${user.id}`);
       const data: Application[] = await res.json();
       setApplications(data || []);
     } catch (err) {

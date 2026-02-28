@@ -552,14 +552,11 @@ async function runSscAutomation(userId) {
       aadharNumber: userData.aadharNumber,
     };
 
-    await fetch(
-      "process.env.NEXT_PUBLIC_API_URL/api/application/save-filled-form",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, formType: "SSC OTR", formData }),
-      },
-    );
+    await fetch("/api/application/save-filled-form", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, formType: "SSC OTR", formData }),
+    });
 
     return {
       status: "success",
@@ -633,12 +630,10 @@ app.post("/verify-payment", async (req, res) => {
         premiumActivatedAt: new Date(),
       });
 
-      res
-        .status(200)
-        .json({
-          status: "success",
-          message: "Payment verified & premium activated!",
-        });
+      res.status(200).json({
+        status: "success",
+        message: "Payment verified & premium activated!",
+      });
     } else {
       res
         .status(400)

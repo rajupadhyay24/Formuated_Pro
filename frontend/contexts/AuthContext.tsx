@@ -48,14 +48,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const login = async (emailId: string, password: string) => {
-    const response = await fetch(
-      "process.env.NEXT_PUBLIC_API_URL/api/auth/login",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ emailId, password }),
-      },
-    );
+    const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ emailId, password }),
+    });
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Login failed");
@@ -68,14 +65,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const register = async (formData: any) => {
-    const response = await fetch(
-      "process.env.NEXT_PUBLIC_API_URL/api/auth/register",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      },
-    );
+    const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Registration failed");

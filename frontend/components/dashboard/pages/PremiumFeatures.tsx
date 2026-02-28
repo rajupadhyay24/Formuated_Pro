@@ -162,7 +162,7 @@ export default function PremiumFeatures() {
       }
 
       const API_URL =
-        process.env.NEXT_PUBLIC_API_URL || "process.env.NEXT_PUBLIC_API_URL";
+         || "";
       console.log(`Creating order with backend at: ${API_URL}`);
 
       const orderResponse = await fetch(`${API_URL}/create-order`, {
