@@ -20,7 +20,7 @@ export const BrowseForms: React.FC = () => {
       name: "SSC OTR",
       category: "SSC",
       description:
-        "Application form for Combined Graduate Level Examination conducted by SSC",
+        "Use this for the form for Combined Graduate Level Examination conducted by SSC.This is working",
       difficulty: "Medium",
       estimatedTime: "30 min",
       popular: true,
@@ -31,7 +31,7 @@ export const BrowseForms: React.FC = () => {
       name: "UPSC Civil Services Examination Form",
       category: "UPSC",
       description:
-        "Application form for IAS, IPS, IFS and other civil services exams",
+        "Application form for IAS, IPS, IFS and other civil services exams.Not Working",
       difficulty: "Hard",
       estimatedTime: "45 min",
       popular: true,
@@ -42,7 +42,7 @@ export const BrowseForms: React.FC = () => {
       name: "Railway RRB NTPC Application Form",
       category: "Railway",
       description:
-        "Apply for Non-Technical Popular Categories recruitment in Indian Railways",
+        "Apply for Non-Technical Popular Categories recruitment in Indian Railways.Not working",
       difficulty: "Medium",
       estimatedTime: "25 min",
       popular: false,
@@ -52,7 +52,7 @@ export const BrowseForms: React.FC = () => {
       id: 4,
       name: "State Government PSC Application Form",
       category: "State Govt.",
-      description: "Application form for state public service commission exams",
+      description: "Application form for state public service commission exams.Not Working",
       difficulty: "Medium",
       estimatedTime: "30 min",
       popular: false,
@@ -63,7 +63,7 @@ export const BrowseForms: React.FC = () => {
       name: "IBPS PO/Clerk Application Form",
       category: "Banking",
       description:
-        "Form to apply for Probationary Officer or Clerk posts in public sector banks",
+        "Form to apply for Probationary Officer or Clerk posts in public sector banks.Not working.",
       difficulty: "Medium",
       estimatedTime: "20 min",
       popular: true,
@@ -74,7 +74,7 @@ export const BrowseForms: React.FC = () => {
       name: "SSC CHSL Application Form",
       category: "SSC",
       description:
-        "Application form for Combined Higher Secondary Level Examination",
+        "Application form for Combined Higher Secondary Level Examination.Not working",
       difficulty: "Easy",
       estimatedTime: "20 min",
       popular: true,
