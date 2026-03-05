@@ -111,7 +111,7 @@ export const UploadDocuments: React.FC = () => {
       fd.append("userId", user?.id || "");
 
       try {
-        const res = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/upload", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
           method: "POST",
           body: fd,
         });
