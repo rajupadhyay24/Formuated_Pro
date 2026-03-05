@@ -28,7 +28,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(
   cors({
-    origin: "https://formulatedpro.vercel.app/",
+    origin: "https://formulatedpro.vercel.app",
     credentials: true,
   }),
 );
