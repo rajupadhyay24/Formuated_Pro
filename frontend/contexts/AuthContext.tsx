@@ -48,11 +48,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const login = async (emailId: string, password: string) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+    {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ emailId, password }),
-    });
+    }
+  );
+
+console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Login failed");
