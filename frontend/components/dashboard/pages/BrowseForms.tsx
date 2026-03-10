@@ -82,6 +82,8 @@ export const BrowseForms: React.FC = () => {
     },
   ];
 
+  const API_BASE = "https://formuated-pro.onrender.com";
+  
   const filteredForms = forms.filter(
     (form) =>
       form.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -95,7 +97,7 @@ export const BrowseForms: React.FC = () => {
         "Starting automation... A new browser window should open shortly.",
       );
 
-      const response = await fetch(`${route}`, {
+      const response = await fetch(`${API_BASE}${route}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
