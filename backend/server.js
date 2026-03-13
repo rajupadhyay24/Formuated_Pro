@@ -9,8 +9,8 @@ import OpenAI from "openai";
 import authRoutes from "./routes/auth.js";
 import Marksheet from "./models/Marksheet.js";
 import formDataRoutes from "./routes/formData.js";
-import { Builder, By, until } from "selenium-webdriver";
-import { Options } from "selenium-webdriver/chrome.js";
+// import { Builder, By, until } from "selenium-webdriver";
+// import { Options } from "selenium-webdriver/chrome.js";
 import User from "./models/User.js";
 import Razorpay from "razorpay";
 import crypto from "crypto";
@@ -299,119 +299,87 @@ export async function fetchUserDataFromDB(userId) {
   }
 }
 
-async function clickSscRadio(driver, optionText) {
+async function clickSscRadio(page, optionText) {
   try {
-    const radioLabelXPath = `//label[normalize-space()='${optionText}']`;
-    const radioLabel = await driver.wait(
-      until.elementLocated(By.xpath(radioLabelXPath)),
-      20000,
-    );
-    // Using executeScript to click is the most reliable way to prevent interception errors.
-    await driver.executeScript(
-      "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
-      radioLabel,
-    );
-    await driver.sleep(300); // A small pause to ensure scrolling is finished.
-    await driver.executeScript("arguments[0].click();", radioLabel);
-    console.log(`✅ Clicked radio button: "${optionText}"`);
+    const radio = page.locator(`//label[normalize-space()='${optionText}']`);
+
+    await radio.waitFor({ timeout: 20000 });
+    await radio.scrollIntoViewIfNeeded();
+    await radio.click();
+
+    console.log(`✅ Clicked radio button: ${optionText}`);
   } catch (err) {
-    console.error(`❌ Could not click radio for "${optionText}"`, err.message);
+    console.error(`❌ Could not click radio ${optionText}`, err.message);
     throw err;
   }
 }
 
-async function fillSscInput(driver, labelText, value) {
-  if (value === undefined || value === null || value === "") return;
+async function fillSscInput(page, labelText, value) {
+  if (!value) return;
+
   try {
-    const simpleInputXPath = `//label[contains(., "${labelText}")]/following-sibling::input[1]`;
-    const dateInputXPath = `//label[contains(., "${labelText}")]/following-sibling::mat-form-field[1]//input`;
-
-    let input;
-    try {
-      input = await driver.findElement(By.xpath(simpleInputXPath));
-    } catch (e) {
-      input = await driver.wait(
-        until.elementLocated(By.xpath(dateInputXPath)),
-        15000,
-      );
-    }
-
-    await driver.executeScript(
-      "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
-      input,
+    const input = page.locator(
+      `//label[contains(text(),"${labelText}")]/following::input[1]`
     );
-    await driver.sleep(300);
-    await driver.executeScript("arguments[0].value = '';", input);
-    await input.sendKeys(value);
-    console.log(`✅ Filled input for "${labelText}"`);
+
+    await input.waitFor({ timeout: 20000 });
+    await input.scrollIntoViewIfNeeded();
+    await input.fill(value.toString());
+
+    console.log(`✅ Filled input ${labelText}`);
   } catch (err) {
-    console.error(`❌ Could not fill input for "${labelText}"`, err.message);
+    console.error(`❌ Could not fill ${labelText}`, err.message);
     throw err;
   }
 }
 
-async function selectSscDropdown(driver, labelText, optionText) {
+
+async function selectSscDropdown(page, labelText, optionText) {
   if (!optionText) return;
+
   try {
-    const openerXPath = `//app-dropdown[contains(@label, "${labelText}")]//div[@class='value-area']`;
-    const opener = await driver.wait(
-      until.elementLocated(By.xpath(openerXPath)),
-      20000,
-    );
-    await driver.executeScript(
-      "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
-      opener,
-    );
-    await driver.sleep(300);
-    await driver.executeScript("arguments[0].click();", opener);
-    console.log(`✅ Opened dropdown for "${labelText}"`);
-
-    await driver.wait(
-      until.elementLocated(By.xpath("//ul[contains(@class, 'list')]")),
-      5000,
+    const dropdown = page.locator(
+      `//app-dropdown[contains(@label,"${labelText}")]//div[contains(@class,"value-area")]`
     );
 
-    const optionXPath = `//ul[contains(@class, 'list')]//li[contains(normalize-space(), "${optionText}")]`;
-    const option = await driver.wait(
-      until.elementLocated(By.xpath(optionXPath)),
-      10000,
+    await dropdown.waitFor({ timeout: 20000 });
+    await dropdown.scrollIntoViewIfNeeded();
+    await dropdown.click();
+
+    const option = page.locator(
+      `//ul[contains(@class,"list")]//li[contains(text(),"${optionText}")]`
     );
-    await driver.executeScript("arguments[0].click();", option);
-    console.log(`✅ Selected "${optionText}" for "${labelText}"`);
+
+    await option.waitFor({ timeout: 10000 });
+    await option.click();
+
+    console.log(`✅ Selected ${optionText} for ${labelText}`);
   } catch (err) {
-    console.warn(
-      `⚠️ Could not select "${optionText}" for "${labelText}"`,
-      err.message,
-    );
-    throw err;
+    console.warn(`⚠️ Could not select ${optionText}`, err.message);
   }
 }
 
-async function fillSscDateField(driver, labelText, dateValue) {
+
+async function fillSscDateField(page, labelText, dateValue) {
   if (!dateValue) return;
+
   try {
-    const dateInputXPath = `//label[contains(., "${labelText}")]/following-sibling::mat-form-field[1]//input`;
-    const input = await driver.wait(
-      until.elementLocated(By.xpath(dateInputXPath)),
-      15000,
+    const input = page.locator(
+      `//label[contains(text(),"${labelText}")]/following::input[1]`
     );
-    await driver.executeScript(
-      "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
-      input,
-    );
-    await driver.sleep(300);
-    await driver.executeScript(
-      "arguments[0].value = arguments[1];" +
-        "arguments[0].dispatchEvent(new Event('input', { bubbles: true }));",
-      input,
-      dateValue,
-    );
-    console.log(`✅ Filled Date for "${labelText}"`);
+
+    await input.waitFor({ timeout: 20000 });
+    await input.scrollIntoViewIfNeeded();
+
+    await input.fill(dateValue);
+
+    console.log(`✅ Filled date for ${labelText}`);
   } catch (err) {
-    console.error(`❌ Could not fill Date for "${labelText}"`, err.message);
+    console.error(`❌ Could not fill date ${labelText}`, err.message);
     throw err;
   }
 }
+
 
 async function runSscAutomation(userId) {
   let browser;
