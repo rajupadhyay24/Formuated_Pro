@@ -17,8 +17,8 @@ import crypto from "crypto";
 import Application from "./models/Application.js";
 import PDFDocument from "pdfkit";
 import applicationRoutes from "./routes/application.js";
-//  // ✅ FIX: User model import
 import userRoutes from "./routes/user.js";
+import { chromium } from "playwright";
 
 dotenv.config();
 const app = express();
@@ -414,130 +414,143 @@ async function fillSscDateField(driver, labelText, dateValue) {
 }
 
 async function runSscAutomation(userId) {
-  let driver;
+  let browser;
+
   try {
     console.log("🚀 Starting SSC Automation...");
-    driver = await new Builder().forBrowser("chrome").build();
+
+    browser = await chromium.launch({
+      headless: true
+    });
+
+    const page = await browser.newPage();
 
     const data = await fetchUserDataFromDB(userId);
     if (!data?.mergedData) throw new Error("No merged user data found.");
+
     const userData = data.mergedData;
 
-    await driver.get("https://ssc.gov.in/");
+    await page.goto("https://ssc.gov.in/");
     console.log("✅ Navigated to ssc.gov.in");
 
-    const loginLink = await driver.wait(
-      until.elementLocated(
-        By.xpath("//*[contains(text(), 'Login or Register')]"),
-      ),
-      15000,
-    );
-    await loginLink.click();
+    await page.waitForSelector("text=Login or Register", { timeout: 15000 });
+    await page.click("text=Login or Register");
     console.log("✅ Clicked 'Login or Register'");
 
-    await driver.wait(
-      until.elementLocated(
-        By.xpath("//input[@placeholder='Registration Number']"),
-      ),
-      15000,
-    );
+    await page.waitForSelector('input[placeholder="Registration Number"]', {
+      timeout: 15000
+    });
+
     console.log("✅ Login modal active");
 
-    await driver.executeScript(`
-      const el = Array.from(document.querySelectorAll('*')).find(e => e.textContent.trim() === 'Register Now');
+    await page.evaluate(() => {
+      const el = Array.from(document.querySelectorAll("*")).find(
+        (e) => e.textContent.trim() === "Register Now"
+      );
       if (el) el.click();
-    `);
-    await driver.sleep(2000);
+    });
 
-    const handles = await driver.getAllWindowHandles();
-    if (handles.length > 1) await driver.switchTo().window(handles.pop());
+    await page.waitForTimeout(2000);
 
-    await driver.wait(
-      until.elementLocated(
-        By.xpath("//*[contains(text(), 'One Time Registration')]"),
-      ),
-      10000,
-    );
+    const pages = page.context().pages();
+    if (pages.length > 1) {
+      await pages[pages.length - 1].bringToFront();
+    }
+
+    await page.waitForSelector("text=One Time Registration", {
+      timeout: 10000
+    });
+
     console.log("✅ 'One Time Registration' detected");
 
-    const continueBtn = await driver.wait(
-      until.elementLocated(By.xpath("//button[normalize-space()='Continue']")),
-      10000,
-    );
-    await driver.executeScript("arguments[0].click();", continueBtn);
+    await page.click("button:has-text('Continue')");
+
     console.log("✅ Clicked Continue");
 
     console.log("🧾 Filling SSC Registration Form...");
 
-    await clickSscRadio(driver, userData.hasAadhaar ? "Yes" : "No");
+    await clickSscRadio(page, userData.hasAadhaar ? "Yes" : "No");
+
     if (userData.hasAadhaar) {
       await fillSscInput(
-        driver,
+        page,
         "Enter Your Aadhaar Details",
-        userData.aadharNumber,
+        userData.aadharNumber
       );
+
       await fillSscInput(
-        driver,
+        page,
         "Verify Aadhaar Details",
-        userData.aadharNumber,
+        userData.aadharNumber
       );
     }
 
-    await fillSscInput(driver, "Candidate Name", userData.candidateName);
-    await fillSscInput(driver, "Verify Candidate Name", userData.candidateName);
-    await clickSscRadio(driver, userData.hasChangedName ? "Yes" : "No");
+    await fillSscInput(page, "Candidate Name", userData.candidateName);
+    await fillSscInput(page, "Verify Candidate Name", userData.candidateName);
 
-    await selectSscDropdown(driver, "Gender", userData.gender);
-    await selectSscDropdown(driver, "Verify Gender", userData.gender);
+    await clickSscRadio(page, userData.hasChangedName ? "Yes" : "No");
 
-    await fillSscDateField(driver, "Date Of Birth", userData.dob);
-    await fillSscDateField(driver, "Verify Date of Birth", userData.dob);
+    await selectSscDropdown(page, "Gender", userData.gender);
+    await selectSscDropdown(page, "Verify Gender", userData.gender);
 
-    await fillSscInput(driver, "Father's Name", userData.fatherName);
-    await fillSscInput(driver, "Verify Father's Name", userData.fatherName);
-    await fillSscInput(driver, "Mother's Name", userData.motherName);
-    await fillSscInput(driver, "Verify Mother's Name", userData.motherName);
+    await fillSscDateField(page, "Date Of Birth", userData.dob);
+    await fillSscDateField(page, "Verify Date of Birth", userData.dob);
+
+    await fillSscInput(page, "Father's Name", userData.fatherName);
+    await fillSscInput(page, "Verify Father's Name", userData.fatherName);
+
+    await fillSscInput(page, "Mother's Name", userData.motherName);
+    await fillSscInput(page, "Verify Mother's Name", userData.motherName);
 
     await selectSscDropdown(
-      driver,
+      page,
       "Matriculation (10th class) Education Board",
-      userData.educationBoard,
+      userData.educationBoard
     );
+
     await selectSscDropdown(
-      driver,
+      page,
       "Verify Matriculation (10th class) Education Board",
-      userData.educationBoard,
+      userData.educationBoard
     );
 
-    await fillSscInput(driver, "Roll Number", userData.rollNumber);
-    await fillSscInput(driver, "Verify Roll Number", userData.rollNumber);
+    await fillSscInput(page, "Roll Number", userData.rollNumber);
+    await fillSscInput(page, "Verify Roll Number", userData.rollNumber);
 
-    await selectSscDropdown(driver, "Year of Passing", userData.yearOfPassing);
+    await selectSscDropdown(page, "Year of Passing", userData.yearOfPassing);
+
     await selectSscDropdown(
-      driver,
+      page,
       "Verify Year of Passing",
-      userData.yearOfPassing,
+      userData.yearOfPassing
     );
 
     await selectSscDropdown(
-      driver,
+      page,
       "Highest Level of Education",
-      userData.highestQualification,
+      userData.highestQualification
     );
+
     await selectSscDropdown(
-      driver,
+      page,
       "Verify Highest Level of Education",
-      userData.highestQualification,
+      userData.highestQualification
     );
 
     await fillSscInput(
-      driver,
+      page,
       "Candidate's Mobile Number",
-      userData.mobileNumber,
+      userData.mobileNumber
     );
-    await fillSscInput(driver, "Candidate's Email ID", userData.emailId);
+
+    await fillSscInput(
+      page,
+      "Candidate's Email ID",
+      userData.emailId
+    );
 
     console.log("🎯 SUCCESS! Form filled.");
+
     const formData = {
       candidateName: userData.candidateName,
       fatherName: userData.fatherName,
@@ -551,30 +564,36 @@ async function runSscAutomation(userId) {
       mobileNumber: userData.mobileNumber,
       emailId: userData.emailId,
       hasAadhaar: userData.hasAadhaar,
-      aadharNumber: userData.aadharNumber,
+      aadharNumber: userData.aadharNumber
     };
 
-    await fetch("/api/application/save-filled-form", {
+    await fetch("https://formuated-pro.onrender.com/api/application/save-filled-form", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, formType: "SSC OTR", formData }),
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userId,
+        formType: "SSC OTR",
+        formData
+      })
     });
 
     return {
       status: "success",
-      message: "SSC form automation completed successfully!",
+      message: "SSC form automation completed successfully!"
     };
 
-    return {
-      status: "success",
-      message: "SSC form automation completed successfully!",
-    };
   } catch (err) {
     console.error("❌ SSC Automation FAILED:", err.message);
     throw err;
   } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }
+
 
 app.post("/start-ssc-automation", async (req, res) => {
   try {
