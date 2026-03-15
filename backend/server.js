@@ -389,7 +389,6 @@ async function runSscAutomation(userId) {
 
   browser = await chromium.launch({
   headless: true,
-  executablePath: "/opt/render/.cache/ms-playwright/chromium/chrome-linux/chrome",
   args: [
     "--no-sandbox",
     "--disable-setuid-sandbox",
@@ -397,6 +396,7 @@ async function runSscAutomation(userId) {
     "--disable-gpu"
   ]
 });
+    
     const page = await browser.newPage();
 
     const data = await fetchUserDataFromDB(userId);
