@@ -5,9 +5,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-          "postinstall": "npx playwright install",
           "start": "node server.js",
-  "dev": "nodemon server.js"
+          "dev": "nodemon server.js"
           },
   "dependencies": {
     "bcryptjs": "^2.4.3",
