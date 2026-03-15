@@ -387,8 +387,9 @@ async function runSscAutomation(userId) {
   try {
     console.log("🚀 Starting SSC Automation...");
 
-   browser = await chromium.launch({
+  browser = await chromium.launch({
   headless: true,
+  executablePath: "/opt/render/.cache/ms-playwright/chromium/chrome-linux/chrome",
   args: [
     "--no-sandbox",
     "--disable-setuid-sandbox",
