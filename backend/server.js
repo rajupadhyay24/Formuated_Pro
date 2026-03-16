@@ -398,14 +398,14 @@ async function runSscAutomation(userId) {
   try {
     console.log("🚀 Starting SSC Automation...");
 
-  browser = await chromium.launch({
+ browser = await chromium.launch({
   headless: true,
+  chromiumSandbox: false,
   args: [
     "--no-sandbox",
     "--disable-setuid-sandbox",
     "--disable-dev-shm-usage",
-    "--disable-gpu",
-    "--disable-blink-features=AutomationControlled"
+    "--disable-gpu"
   ]
 });
     
