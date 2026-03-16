@@ -395,20 +395,36 @@ async function runSscAutomation(userId) {
     "--no-sandbox",
     "--disable-setuid-sandbox",
     "--disable-dev-shm-usage",
-    "--disable-gpu"
+    "--disable-gpu",
+    "--disable-blink-features=AutomationControlled"
   ]
 });
     
-    const page = await browser.newPage();
+   const context = await browser.newContext({
+  userAgent:
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  viewport: { width: 1366, height: 768 }
+});
+
+const page = await context.newPage();
 
     const data = await fetchUserDataFromDB(userId);
     if (!data?.mergedData) throw new Error("No merged user data found.");
 
     const userData = data.mergedData;
+await page.route("**/*", (route) => {
+  const type = route.request().resourceType();
 
+  if (type === "image" || type === "font" || type === "media") {
+    route.abort();
+  } else {
+    route.continue();
+  }
+});
+    
    await page.goto("https://ssc.gov.in/", {
    timeout: 60000,  // 60 seconds
-   waitUntil: "domcontentloaded"
+    waitUntil: "commit"
     });
     console.log("✅ Navigated to ssc.gov.in");
 
