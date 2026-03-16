@@ -6,6 +6,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+     "postinstall": "npx playwright install chromium",
     "dev": "nodemon server.js"
   },
   "dependencies": {
