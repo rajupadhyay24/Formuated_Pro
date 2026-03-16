@@ -18,7 +18,7 @@ import Application from "./models/Application.js";
 import PDFDocument from "pdfkit";
 import applicationRoutes from "./routes/application.js";
 import userRoutes from "./routes/user.js";
-import { chromium } from "playwright";
+import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
 dotenv.config();
@@ -389,15 +389,13 @@ async function runSscAutomation(userId) {
   try {
     console.log("🚀 Starting SSC Automation...");
 
-  const browser = await chromium.launch({
+  browser = await chromium.launch({
   headless: true,
   args: [
     "--no-sandbox",
     "--disable-setuid-sandbox",
     "--disable-dev-shm-usage",
-    "--disable-gpu",
-    "--disable-web-security",       // optional, for cross-origin
-    "--disable-blink-features=AutomationControlled" // bypass headless detection
+    "--disable-gpu"
   ]
 });
     
