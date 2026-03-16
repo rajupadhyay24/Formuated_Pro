@@ -387,13 +387,15 @@ async function runSscAutomation(userId) {
   try {
     console.log("🚀 Starting SSC Automation...");
 
-  browser = await chromium.launch({
+  const browser = await chromium.launch({
   headless: true,
   args: [
     "--no-sandbox",
     "--disable-setuid-sandbox",
     "--disable-dev-shm-usage",
-    "--disable-gpu"
+    "--disable-gpu",
+    "--disable-web-security",       // optional, for cross-origin
+    "--disable-blink-features=AutomationControlled" // bypass headless detection
   ]
 });
     
@@ -404,7 +406,10 @@ async function runSscAutomation(userId) {
 
     const userData = data.mergedData;
 
-    await page.goto("https://ssc.gov.in/");
+   await page.goto("https://ssc.gov.in/", {
+   timeout: 60000,  // 60 seconds
+   waitUntil: "networkidle"
+    });
     console.log("✅ Navigated to ssc.gov.in");
 
     await page.waitForSelector("text=Login or Register", { timeout: 15000 });
