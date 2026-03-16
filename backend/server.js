@@ -28,14 +28,23 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 chromium.use(StealthPlugin());
 
-app.use(
-  cors({
-    origin: "https://formulatedpro.vercel.app",
-    credentials: true,
-  }),
-);
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://formulatedpro.vercel.app"
+];
 
-app.options("*", cors());  
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed"));
+    }
+  },
+  credentials: true
+}));
+
+// app.options("*", cors());  
 
 app.use(express.json());
 
