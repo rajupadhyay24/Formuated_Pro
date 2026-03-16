@@ -399,7 +399,7 @@ async function runSscAutomation(userId) {
     console.log("🚀 Starting SSC Automation...");
 
   browser = await chromium.launch({
-  headless: true,
+  headless: false,
   args: [
     "--no-sandbox",
     "--disable-setuid-sandbox",
