@@ -19,12 +19,14 @@ import PDFDocument from "pdfkit";
 import applicationRoutes from "./routes/application.js";
 import userRoutes from "./routes/user.js";
 import { chromium } from "playwright";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
 dotenv.config();
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
 
+chromium.use(StealthPlugin());
 
 app.use(
   cors({
@@ -408,7 +410,7 @@ async function runSscAutomation(userId) {
 
    await page.goto("https://ssc.gov.in/", {
    timeout: 60000,  // 60 seconds
-   waitUntil: "networkidle"
+   waitUntil: "domcontentloaded"
     });
     console.log("✅ Navigated to ssc.gov.in");
 
