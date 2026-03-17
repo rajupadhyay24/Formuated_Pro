@@ -22,9 +22,6 @@
     "pdf-poppler": "^0.2.1",
     "pdfkit": "^0.17.2",
     "playwright": "^1.58.2",
-    "playwright-core": "^1.58.2",
-    "playwright-extra": "^4.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "razorpay": "^2.9.6",
     "tesseract.js": "^6.0.1"
   },
