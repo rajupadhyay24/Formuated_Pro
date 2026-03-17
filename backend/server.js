@@ -19,14 +19,14 @@ import PDFDocument from "pdfkit";
 import applicationRoutes from "./routes/application.js";
 import userRoutes from "./routes/user.js";
 import { chromium } from "playwright-core";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
+// import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
 dotenv.config();
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
 
-chromium.use(StealthPlugin());
+// chromium.use(StealthPlugin());
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -397,39 +397,53 @@ async function runSscAutomation(userId) {
 
   try {
     console.log("🚀 Starting SSC Automation...");
-console.log("Playwright path:", process.cwd());
+    console.log("Playwright path:", process.cwd());
 
-browser = await chromium.launch({
-  headless: true,
-  args: ["--no-sandbox", "--disable-setuid-sandbox"]
-});
+    browser = await chromium.launch({
+      headless: true,
+      executablePath:
+        process.env.PLAYWRIGHT_BROWSERS_PATH ||
+        "/opt/render/project/src/backend/node_modules/playwright-core/.local-browsers/chromium-1208/chrome-linux/chrome",
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu"
+      ]
+    });
 
 
-   const context = await browser.newContext({
-  userAgent:
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-  viewport: { width: 1366, height: 768 }
-});
+    const context = await browser.newContext({
+      userAgent:
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+      viewport: { width: 1366, height: 768 }
+    });
 
-const page = await context.newPage();
+    const page = await context.newPage();
+
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', {
+        get: () => false,
+      });
+    });
 
     const data = await fetchUserDataFromDB(userId);
     if (!data?.mergedData) throw new Error("No merged user data found.");
 
     const userData = data.mergedData;
-await page.route("**/*", (route) => {
-  const type = route.request().resourceType();
+    await page.route("**/*", (route) => {
+      const type = route.request().resourceType();
 
-  if (type === "image" || type === "font" || type === "media") {
-    route.abort();
-  } else {
-    route.continue();
-  }
-});
-    
-   await page.goto("https://ssc.gov.in/", {
-   timeout: 60000,  // 60 seconds
-    waitUntil: "commit"
+      if (type === "image" || type === "font" || type === "media") {
+        route.abort();
+      } else {
+        route.continue();
+      }
+    });
+
+    await page.goto("https://ssc.gov.in/", {
+      timeout: 60000,  // 60 seconds
+      waitUntil: "commit"
     });
     console.log("✅ Navigated to ssc.gov.in");
 
