@@ -18,7 +18,7 @@ import Application from "./models/Application.js";
 import PDFDocument from "pdfkit";
 import applicationRoutes from "./routes/application.js";
 import userRoutes from "./routes/user.js";
-import { chromium } from "playwright-extra";
+import { chromium } from "playwright-core";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
 dotenv.config();
@@ -400,9 +400,8 @@ async function runSscAutomation(userId) {
 console.log("Playwright path:", process.cwd());
 
 browser = await chromium.launch({
-  executablePath: "/usr/bin/chromium",
   headless: true,
-  args: ["--no-sandbox"]
+  args: ["--no-sandbox", "--disable-setuid-sandbox"]
 });
 
 
