@@ -18,7 +18,7 @@ import Application from "./models/Application.js";
 import PDFDocument from "pdfkit";
 import applicationRoutes from "./routes/application.js";
 import userRoutes from "./routes/user.js";
-import { chromium } from "playwright-core";
+import { chromium } from "playwright";
 // import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
 dotenv.config();
@@ -401,17 +401,8 @@ async function runSscAutomation(userId) {
 
     browser = await chromium.launch({
       headless: true,
-      executablePath:
-        process.env.PLAYWRIGHT_BROWSERS_PATH ||
-        "/opt/render/project/src/backend/node_modules/playwright-core/.local-browsers/chromium-1208/chrome-linux/chrome",
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu"
-      ]
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
-
 
     const context = await browser.newContext({
       userAgent:
