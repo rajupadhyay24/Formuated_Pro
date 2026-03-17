@@ -397,18 +397,15 @@ async function runSscAutomation(userId) {
 
   try {
     console.log("🚀 Starting SSC Automation...");
+console.log("Playwright path:", process.cwd());
 
- browser = await chromium.launch({
+browser = await chromium.launch({
+  executablePath: "/usr/bin/chromium",
   headless: true,
-  chromiumSandbox: false,
-  args: [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-gpu"
-  ]
+  args: ["--no-sandbox"]
 });
-    
+
+
    const context = await browser.newContext({
   userAgent:
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
