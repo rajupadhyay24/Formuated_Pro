@@ -3,7 +3,7 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - main   # triggers when you push
+      - main
 
 jobs:
   build:
@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: 📥 Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4   # ✅ updated
 
       - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4   # ✅ updated
         with:
           node-version: 18
 
