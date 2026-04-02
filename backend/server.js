@@ -1,7 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import jwt from "jsonwebtoken";
+
 import multer from "multer";
 import Tesseract from "tesseract.js";
 import dotenv from "dotenv";
@@ -19,7 +19,6 @@ import PDFDocument from "pdfkit";
 import applicationRoutes from "./routes/application.js";
 import userRoutes from "./routes/user.js";
 import { chromium } from "playwright";
-// import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
 dotenv.config();
 const app = express();
