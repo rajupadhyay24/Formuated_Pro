@@ -2,11 +2,31 @@ FROM node:18
 
 WORKDIR /app
 
+# Install browser dependencies
+
+RUN apt-get update && apt-get install -y \
+    libnspr4 \
+    libnss3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libpangocairo-1.0-0 \
+    libgtk-3-0 \
+    libxshmfence1 \
+    libglu1-mesa \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY package*.json ./
 RUN npm install
 
-COPY . .
+# Install Playwright browsers
+RUN npx playwright install
 
-EXPOSE 5000
+COPY . .
 
 CMD ["node", "server.js"]
