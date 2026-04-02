@@ -391,7 +391,6 @@ async function runSscAutomation(userId) {
 
   try {
     console.log("🚀 Starting SSC Automation...");
-    console.log("Playwright path:", process.cwd());
 
     browser = await chromium.launch({
       headless: true,
@@ -406,113 +405,82 @@ async function runSscAutomation(userId) {
 
     const page = await context.newPage();
 
+    // Anti-bot tweak
     await page.addInitScript(() => {
-      Object.defineProperty(navigator, 'webdriver', {
+      Object.defineProperty(navigator, "webdriver", {
         get: () => false,
       });
     });
 
+    // Fetch user data
     const data = await fetchUserDataFromDB(userId);
     if (!data?.mergedData) throw new Error("No merged user data found.");
-
     const userData = data.mergedData;
+
+    // Block heavy resources
     await page.route("**/*", (route) => {
       const type = route.request().resourceType();
-
-      if (type === "image" || type === "font" || type === "media") {
+      if (["image", "font", "media"].includes(type)) {
         route.abort();
       } else {
         route.continue();
       }
     });
 
+    // Open SSC website
     await page.goto("https://ssc.gov.in/", {
-      timeout: 60000,  // 60 seconds
-      waitUntil: "commit"
+      timeout: 60000,
+      waitUntil: "domcontentloaded"
     });
-    console.log("✅ Navigated to ssc.gov.in");
 
+    console.log("✅ Navigated to SSC");
+
+    // Click Login/Register
     await page.waitForSelector("text=Login or Register", { timeout: 15000 });
     await page.click("text=Login or Register");
-    console.log("✅ Clicked 'Login or Register'");
 
+    console.log("✅ Login modal opened");
+
+    // Wait for modal input
     await page.waitForSelector('input[placeholder="Registration Number"]', {
       timeout: 15000
     });
 
-    console.log("✅ Login modal active");
+    console.log("✅ Login modal ready");
 
+    // Click REGISTER (robust way)
+    const registerBtn = page.getByRole("button", { name: /register/i }).first();
 
-   let newPage;
+    await registerBtn.waitFor({ timeout: 15000 });
+    await registerBtn.click();
 
-try {
-  [newPage] = await Promise.all([
-    context.waitForEvent("page", { timeout: 8000 }),
-    page.locator("text=Register Now").click(),
-  ]);
+    console.log("✅ Clicked Register");
 
-  await newPage.waitForLoadState();
-
-} catch (e) {
-  console.log("⚠️ No new tab, probably same tab or SPA navigation");
-
-  await page.locator("text=Register Now").click();
-
-  // ✅ WAIT FOR NEXT UI ELEMENT INSTEAD OF NAVIGATION
-  await page.waitForSelector("text=One Time Registration", {
-    timeout: 15000,
-  });
-
-  newPage = page;
-}
-
-    // Get URL of new tab
-    // const newUrl = newPage.url();
-    console.log("🔗 Redirect URL:", newUrl);
-
-    // Close new tab
-    // await newPage.close();
-
-    // Open SAME URL in current tab
-    // await page.goto(newUrl, { waitUntil: "domcontentloaded" });
-
-    console.log("✅ Forced navigation in SAME TAB");
-
-
-
-await page.locator("text=Register Now").click();
-
-
+    // WAIT for next screen (NO navigation!)
     await page.waitForSelector("text=One Time Registration", {
-      timeout: 10000
+      timeout: 20000
     });
 
-    console.log("✅ 'One Time Registration' detected");
+    console.log("✅ One Time Registration screen loaded");
 
-    await page.click("button:has-text('Continue')");
+    // Click Continue
+    await page.getByRole("button", { name: /continue/i }).click();
 
     console.log("✅ Clicked Continue");
 
     console.log("🧾 Filling SSC Registration Form...");
 
+    // ================= FORM FILLING =================
+
     await clickSscRadio(
       page,
-      "Aadhaar",   // 🔥 NOT full sentence
+      "Aadhaar",
       userData.hasAadhaar ? "Yes" : "No"
     );
 
     if (userData.hasAadhaar) {
-      await fillSscInput(
-        page,
-        "Enter Your Aadhaar Details",
-        userData.aadharNumber
-      );
-
-      await fillSscInput(
-        page,
-        "Verify Aadhaar Details",
-        userData.aadharNumber
-      );
+      await fillSscInput(page, "Enter Your Aadhaar Details", userData.aadharNumber);
+      await fillSscInput(page, "Verify Aadhaar Details", userData.aadharNumber);
     }
 
     await fillSscInput(page, "Candidate Name", userData.candidateName);
@@ -548,12 +516,7 @@ await page.locator("text=Register Now").click();
     await fillSscInput(page, "Verify Roll Number", userData.rollNumber);
 
     await selectSscDropdown(page, "Year of Passing", userData.yearOfPassing);
-
-    await selectSscDropdown(
-      page,
-      "Verify Year of Passing",
-      userData.yearOfPassing
-    );
+    await selectSscDropdown(page, "Verify Year of Passing", userData.yearOfPassing);
 
     await selectSscDropdown(
       page,
@@ -567,36 +530,12 @@ await page.locator("text=Register Now").click();
       userData.highestQualification
     );
 
-    await fillSscInput(
-      page,
-      "Candidate's Mobile Number",
-      userData.mobileNumber
-    );
-
-    await fillSscInput(
-      page,
-      "Candidate's Email ID",
-      userData.emailId
-    );
+    await fillSscInput(page, "Candidate's Mobile Number", userData.mobileNumber);
+    await fillSscInput(page, "Candidate's Email ID", userData.emailId);
 
     console.log("🎯 SUCCESS! Form filled.");
 
-    const formData = {
-      candidateName: userData.candidateName,
-      fatherName: userData.fatherName,
-      motherName: userData.motherName,
-      dob: userData.dob,
-      gender: userData.gender,
-      rollNumber: userData.rollNumber,
-      highestQualification: userData.highestQualification,
-      educationBoard: userData.educationBoard,
-      yearOfPassing: userData.yearOfPassing,
-      mobileNumber: userData.mobileNumber,
-      emailId: userData.emailId,
-      hasAadhaar: userData.hasAadhaar,
-      aadharNumber: userData.aadharNumber
-    };
-
+    // Save filled data
     await fetch("https://formuated-pro.onrender.com/api/application/save-filled-form", {
       method: "POST",
       headers: {
@@ -605,7 +544,7 @@ await page.locator("text=Register Now").click();
       body: JSON.stringify({
         userId,
         formType: "SSC OTR",
-        formData
+        formData: userData
       })
     });
 
@@ -618,11 +557,10 @@ await page.locator("text=Register Now").click();
     console.error("❌ SSC Automation FAILED:", err.message);
     throw err;
   } finally {
-    if (browser) {
-      await browser.close();
-    }
+    if (browser) await browser.close();
   }
 }
+
 
 
 app.post("/start-ssc-automation", async (req, res) => {
