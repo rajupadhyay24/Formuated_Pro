@@ -443,15 +443,23 @@ async function runSscAutomation(userId) {
     console.log("✅ Login modal active");
 
 
-    const [newPage] = await Promise.all([
-      context.waitForEvent("page"), // listen for new tab
-      page.evaluate(() => {
-        const el = Array.from(document.querySelectorAll("*")).find(
-          (e) => e.textContent.trim() === "Register Now"
-        );
-        if (el) el.click();
-      }),
-    ]);
+    let newPage;
+
+try {
+  [newPage] = await Promise.all([
+    context.waitForEvent("page", { timeout: 10000 }),
+    page.locator("text=Register Now").click(),
+  ]);
+} catch (e) {
+  console.log("⚠️ No new tab, using same page navigation");
+
+  await Promise.all([
+    page.waitForNavigation(),
+    page.locator("text=Register Now").click(),
+  ]);
+
+  newPage = page; // fallback
+}
 
     // Get URL of new tab
     const newUrl = newPage.url();
