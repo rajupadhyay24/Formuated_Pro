@@ -394,7 +394,7 @@ async function runSscAutomation(userId) {
     console.log("Playwright path:", process.cwd());
 
     browser = await chromium.launch({
-      headless: false,
+      headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 
