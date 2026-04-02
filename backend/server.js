@@ -41,7 +41,7 @@ app.use(cors({
 }));
 
 
-app.options("*", cors());  
+app.options("*", cors());
 
 app.use(express.json());
 
@@ -308,62 +308,60 @@ export async function fetchUserDataFromDB(userId) {
 }
 
 async function clickSscRadio(page, optionText) {
-  try {
-    const radio = page.locator(`//label[normalize-space()='${optionText}']`);
+  const radio = page.getByText(optionText).first();
 
-    await radio.waitFor({ timeout: 20000 });
-    await radio.scrollIntoViewIfNeeded();
-    await radio.click();
+  await radio.waitFor({ timeout: 20000 });
+  await radio.scrollIntoViewIfNeeded();
+  await radio.click();
 
-    console.log(`✅ Clicked radio button: ${optionText}`);
-  } catch (err) {
-    console.error(`❌ Could not click radio ${optionText}`, err.message);
-    throw err;
-  }
+  console.log(`✅ Clicked ${optionText}`);
 }
+
+
 
 async function fillSscInput(page, labelText, value) {
   if (!value) return;
 
-  try {
-    const input = page.locator(
-      `//label[contains(text(),"${labelText}")]/following::input[1]`
-    );
+  const input = page.locator(`input:near(:text("${labelText}"))`).first();
 
-    await input.waitFor({ timeout: 20000 });
-    await input.scrollIntoViewIfNeeded();
-    await input.fill(value.toString());
+  await input.waitFor({ timeout: 20000 });
+  await input.fill(value.toString());
 
-    console.log(`✅ Filled input ${labelText}`);
-  } catch (err) {
-    console.error(`❌ Could not fill ${labelText}`, err.message);
-    throw err;
-  }
+  console.log(`✅ Filled ${labelText}`);
 }
 
 
-async function selectSscDropdown(page, labelText, optionText) {
-  if (!optionText) return;
 
+async function selectSscDropdown(page, labelText, optionText, index = 0) {
   try {
-    const dropdown = page.locator(
-      `//app-dropdown[contains(@label,"${labelText}")]//div[contains(@class,"value-area")]`
-    );
+    // 🔥 Step 1: Get correct label (Gender vs Verify Gender)
+    const label = page.locator(`div.label:has-text("${labelText}")`).nth(index);
+
+    await label.waitFor({ timeout: 20000 });
+
+    // 🔥 Step 2: Move to its dropdown (value-area)
+    const dropdown = label.locator('xpath=following::div[contains(@class,"value-area")][1]');
 
     await dropdown.waitFor({ timeout: 20000 });
     await dropdown.scrollIntoViewIfNeeded();
     await dropdown.click();
 
-    const option = page.locator(
-      `//ul[contains(@class,"list")]//li[contains(text(),"${optionText}")]`
-    );
+    console.log(`📂 Opened dropdown: ${labelText}`);
+
+    // 🔥 Step 3: Wait for options
+    await page.waitForTimeout(1500);
+
+    // 🔥 Step 4: Select option (NOW using <li> because your DOM has it)
+    const option = page.locator(`li:has-text("${optionText}")`).first();
 
     await option.waitFor({ timeout: 10000 });
     await option.click();
 
-    console.log(`✅ Selected ${optionText} for ${labelText}`);
+    console.log(`✅ Selected ${optionText}`);
+
   } catch (err) {
-    console.warn(`⚠️ Could not select ${optionText}`, err.message);
+    console.error(`❌ Dropdown failed (${labelText}):`, err.message);
+    throw err;
   }
 }
 
@@ -397,7 +395,7 @@ async function runSscAutomation(userId) {
     console.log("Playwright path:", process.cwd());
 
     browser = await chromium.launch({
-      headless: true,
+      headless: false,
       args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 
@@ -445,19 +443,30 @@ async function runSscAutomation(userId) {
 
     console.log("✅ Login modal active");
 
-    await page.evaluate(() => {
-      const el = Array.from(document.querySelectorAll("*")).find(
-        (e) => e.textContent.trim() === "Register Now"
-      );
-      if (el) el.click();
-    });
 
-    await page.waitForTimeout(2000);
+    const [newPage] = await Promise.all([
+      context.waitForEvent("page"), // listen for new tab
+      page.evaluate(() => {
+        const el = Array.from(document.querySelectorAll("*")).find(
+          (e) => e.textContent.trim() === "Register Now"
+        );
+        if (el) el.click();
+      }),
+    ]);
 
-    const pages = page.context().pages();
-    if (pages.length > 1) {
-      await pages[pages.length - 1].bringToFront();
-    }
+    // Get URL of new tab
+    const newUrl = newPage.url();
+    console.log("🔗 Redirect URL:", newUrl);
+
+    // Close new tab
+    await newPage.close();
+
+    // Open SAME URL in current tab
+    await page.goto(newUrl, { waitUntil: "domcontentloaded" });
+
+    console.log("✅ Forced navigation in SAME TAB");
+
+
 
     await page.waitForSelector("text=One Time Registration", {
       timeout: 10000
@@ -471,7 +480,11 @@ async function runSscAutomation(userId) {
 
     console.log("🧾 Filling SSC Registration Form...");
 
-    await clickSscRadio(page, userData.hasAadhaar ? "Yes" : "No");
+    await clickSscRadio(
+      page,
+      "Aadhaar",   // 🔥 NOT full sentence
+      userData.hasAadhaar ? "Yes" : "No"
+    );
 
     if (userData.hasAadhaar) {
       await fillSscInput(
@@ -492,8 +505,8 @@ async function runSscAutomation(userId) {
 
     await clickSscRadio(page, userData.hasChangedName ? "Yes" : "No");
 
-    await selectSscDropdown(page, "Gender", userData.gender);
-    await selectSscDropdown(page, "Verify Gender", userData.gender);
+    await selectSscDropdown(page, "Gender", "Male", 0);
+    await selectSscDropdown(page, "Verify Gender", "Male", 0);
 
     await fillSscDateField(page, "Date Of Birth", userData.dob);
     await fillSscDateField(page, "Verify Date of Birth", userData.dob);
@@ -622,7 +635,6 @@ app.post("/create-order", async (req, res) => {
     };
     const order = await razorpayInstance.orders.create(options);
     if (!order) return res.status(500).send("Error creating Razorpay order.");
-    console.log("✅ Order Created:", order);
     res.status(200).json(order);
   } catch (error) {
     console.error("❌ Error in /create-order:", error);
