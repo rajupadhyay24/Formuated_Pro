@@ -443,36 +443,44 @@ async function runSscAutomation(userId) {
     console.log("✅ Login modal active");
 
 
-    let newPage;
+   let newPage;
 
 try {
   [newPage] = await Promise.all([
-    context.waitForEvent("page", { timeout: 10000 }),
+    context.waitForEvent("page", { timeout: 8000 }),
     page.locator("text=Register Now").click(),
   ]);
+
+  await newPage.waitForLoadState();
+
 } catch (e) {
-  console.log("⚠️ No new tab, using same page navigation");
+  console.log("⚠️ No new tab, probably same tab or SPA navigation");
 
-  await Promise.all([
-    page.waitForNavigation(),
-    page.locator("text=Register Now").click(),
-  ]);
+  await page.locator("text=Register Now").click();
 
-  newPage = page; // fallback
+  // ✅ WAIT FOR NEXT UI ELEMENT INSTEAD OF NAVIGATION
+  await page.waitForSelector("text=One Time Registration", {
+    timeout: 15000,
+  });
+
+  newPage = page;
 }
 
     // Get URL of new tab
-    const newUrl = newPage.url();
+    // const newUrl = newPage.url();
     console.log("🔗 Redirect URL:", newUrl);
 
     // Close new tab
-    await newPage.close();
+    // await newPage.close();
 
     // Open SAME URL in current tab
-    await page.goto(newUrl, { waitUntil: "domcontentloaded" });
+    // await page.goto(newUrl, { waitUntil: "domcontentloaded" });
 
     console.log("✅ Forced navigation in SAME TAB");
 
+
+
+await page.locator("text=Register Now").click();
 
 
     await page.waitForSelector("text=One Time Registration", {
